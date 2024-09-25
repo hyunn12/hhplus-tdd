@@ -17,10 +17,11 @@ public class PointService {
     private final UserPointRepository userPointRepository;
     private final PointHistoryRepository pointHistoryRepository;
 
-    public void validUser(long userId) {
-
-    }
-
+    /**
+     * 유저 포인트 조회
+     * @param id
+     * @return
+     */
     public UserPoint point(long id) {
         UserPoint userPoint = userPointRepository.selectById(id);
 
@@ -31,11 +32,22 @@ public class PointService {
         return userPoint;
     }
 
+    /**
+     * 유저 포인트 이력 조회
+     * @param id
+     * @return
+     */
     public List<PointHistory> history(long id) {
         point(id);
         return pointHistoryRepository.selectAllByUserId(id);
     }
 
+    /**
+     * 포인트 충전
+     * @param id
+     * @param amount
+     * @return
+     */
     public UserPoint charge(long id, long amount) {
         UserPoint userPoint = point(id);
 
@@ -49,6 +61,12 @@ public class PointService {
         return updatedUserPoint;
     }
 
+    /**
+     * 포인트 사용
+     * @param id
+     * @param amount
+     * @return
+     */
     public UserPoint use(long id, long amount) {
         UserPoint userPoint = point(id);
 
@@ -66,6 +84,12 @@ public class PointService {
         return updatedUserPoint;
     }
 
+    /**
+     * 포인트 사용 가능 여부
+     * @param initPoint
+     * @param amount
+     * @return
+     */
     private boolean canUsePoint(long initPoint, long amount) {
         return initPoint - amount >= 0;
     }
