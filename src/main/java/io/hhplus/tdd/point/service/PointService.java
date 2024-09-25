@@ -48,7 +48,7 @@ public class PointService {
      * @param amount
      * @return
      */
-    public UserPoint charge(long id, long amount) {
+    public synchronized UserPoint charge(long id, long amount) {
         UserPoint userPoint = point(id);
 
         UserPoint updatedUserPoint = userPointRepository.insertOrUpdate(id, userPoint.point() + amount);
@@ -67,7 +67,7 @@ public class PointService {
      * @param amount
      * @return
      */
-    public UserPoint use(long id, long amount) {
+    public synchronized UserPoint use(long id, long amount) {
         UserPoint userPoint = point(id);
 
         if (!canUsePoint(userPoint.point(), amount)) {
