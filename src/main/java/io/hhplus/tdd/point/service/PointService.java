@@ -1,5 +1,6 @@
 package io.hhplus.tdd.point.service;
 
+import io.hhplus.tdd.point.PointConstant;
 import io.hhplus.tdd.point.entity.PointHistory;
 import io.hhplus.tdd.point.entity.TransactionType;
 import io.hhplus.tdd.point.entity.UserPoint;
@@ -49,7 +50,16 @@ public class PointService {
      * @return
      */
     public synchronized UserPoint chargePoint(long id, long amount) {
+        if (amount < PointConstant.MIN_CHARGE_POINT) {
+            throw new RuntimeException("최소 충전 포인트는 " + PointConstant.MIN_CHARGE_POINT + "P 이상이어야 합니다.");
+        }
+
         UserPoint userPoint = getUserPoint(id);
+
+        long chargedPoint = userPoint.point() + amount;
+        if (chargedPoint > PointConstant.MAX_POINT) {
+            throw new RuntimeException("충전 후 보유 포인트는 " + PointConstant.MAX_POINT + "P를 초과할 수 없습니다.");
+        }
 
         UserPoint updatedUserPoint = userPointRepository.insertOrUpdate(id, userPoint.point() + amount);
         if (updatedUserPoint == null) {
@@ -68,13 +78,22 @@ public class PointService {
      * @return
      */
     public synchronized UserPoint usePoint(long id, long amount) {
+        if (amount < PointConstant.MIN_USE_POINT) {
+            throw new RuntimeException("최소 사용 포인트는 " + PointConstant.MIN_USE_POINT + "P 이상이어야 합니다.");
+        }
+
         UserPoint userPoint = getUserPoint(id);
 
         if (!canUsePoint(userPoint.point(), amount)) {
             throw new RuntimeException("보유 포인트가 부족합니다.");
         }
 
-        UserPoint updatedUserPoint = userPointRepository.insertOrUpdate(id, userPoint.point() - amount);
+        long usedPoint = userPoint.point() - amount;
+        if (usedPoint < PointConstant.MIN_POINT) {
+            throw new RuntimeException("사용 후 잔여 포인트는 " + PointConstant.MIN_POINT + "P 이상이어야 합니다.");
+        }
+
+        UserPoint updatedUserPoint = userPointRepository.insertOrUpdate(id, usedPoint);
         if (updatedUserPoint == null) {
             throw new RuntimeException("포인트 사용 오류");
         }

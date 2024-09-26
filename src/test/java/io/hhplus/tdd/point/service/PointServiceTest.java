@@ -1,5 +1,6 @@
 package io.hhplus.tdd.point.service;
 
+import io.hhplus.tdd.point.PointConstant;
 import io.hhplus.tdd.point.entity.PointHistory;
 import io.hhplus.tdd.point.entity.TransactionType;
 import io.hhplus.tdd.point.entity.UserPoint;
@@ -59,6 +60,9 @@ class PointServiceTest {
     @DisplayName("존재하는 내역 조회")
     void testUserPointHistoryExist() {
         long id = 1L;
+
+        UserPoint userPoint = new UserPoint(id, 1500L, System.currentTimeMillis());
+        when(userPointRepository.selectById(id)).thenReturn(userPoint);
 
         PointHistory history1 = new PointHistory(1L, id, 1000L, TransactionType.CHARGE, System.currentTimeMillis());
         PointHistory history2 = new PointHistory(2L, id, 500L, TransactionType.USE, System.currentTimeMillis());
@@ -141,15 +145,70 @@ class PointServiceTest {
 
         when(userPointRepository.selectById(id)).thenReturn(userPoint);
 
-//        assertThrows(RuntimeException.class, () -> {
-//            pointService.use(id, usePoint);
-//        });
-
         RuntimeException exception = assertThrows(RuntimeException.class, () -> {
             pointService.usePoint(id, usePoint);
         });
 
         assertEquals("보유 포인트가 부족합니다.", exception.getMessage());
+    }
+
+
+    @Test
+    @DisplayName("충전 포인트가 최소 충전 포인트 미만인 경우 예외 발생")
+    void testChargeBelowMinChargePoint() {
+        long userId = 1L;
+        long chargeAmount = PointConstant.MIN_CHARGE_POINT - 1;
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+            pointService.chargePoint(userId, chargeAmount);
+        });
+
+        assertEquals("최소 충전 포인트는 " + PointConstant.MIN_CHARGE_POINT + "P 이상이어야 합니다.", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("충전 후 포인트가 최대 보유 포인트를 초과하는 경우 예외 발생")
+    void testChargeOverMaxPoint() {
+        long userId = 1L;
+        long initPoint = PointConstant.MAX_POINT - 500L;
+        long chargeAmount = 1000L;
+
+        when(userPointRepository.selectById(userId)).thenReturn(new UserPoint(userId, initPoint, System.currentTimeMillis()));
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+            pointService.chargePoint(userId, chargeAmount);
+        });
+
+        assertEquals("충전 후 보유 포인트는 " + PointConstant.MAX_POINT + "P를 초과할 수 없습니다.", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("사용 포인트가 최소 사용 포인트 미만인 경우 예외 발생")
+    void testUseBelowMinUsePoint() {
+        long userId = 1L;
+        long useAmount = PointConstant.MIN_USE_POINT - 1;
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+            pointService.usePoint(userId, useAmount);
+        });
+
+        assertEquals("최소 사용 포인트는 " + PointConstant.MIN_USE_POINT + "P 이상이어야 합니다.", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("사용 후 포인트가 최소 보유 포인트 미만인 경우 예외 발생")
+    void testUseBelowMinRemainingPoint() {
+        long userId = 1L;
+        long initPoint = 1000L;
+        long useAmount = 990L;
+
+        when(userPointRepository.selectById(userId)).thenReturn(new UserPoint(userId, initPoint, System.currentTimeMillis()));
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+            pointService.usePoint(userId, useAmount);
+        });
+
+        assertEquals("사용 후 잔여 포인트는 " + PointConstant.MIN_POINT + "P 이상이어야 합니다.", exception.getMessage());
     }
 
 }
