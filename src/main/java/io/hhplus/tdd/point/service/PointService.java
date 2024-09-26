@@ -22,7 +22,7 @@ public class PointService {
      * @param id
      * @return
      */
-    public UserPoint point(long id) {
+    public UserPoint getUserPoint(long id) {
         UserPoint userPoint = userPointRepository.selectById(id);
 
         if (userPoint == null) {
@@ -37,8 +37,8 @@ public class PointService {
      * @param id
      * @return
      */
-    public List<PointHistory> history(long id) {
-        point(id);
+    public List<PointHistory> getUserPointHistoryList(long id) {
+        getUserPoint(id);
         return pointHistoryRepository.selectAllByUserId(id);
     }
 
@@ -48,8 +48,8 @@ public class PointService {
      * @param amount
      * @return
      */
-    public synchronized UserPoint charge(long id, long amount) {
-        UserPoint userPoint = point(id);
+    public synchronized UserPoint chargePoint(long id, long amount) {
+        UserPoint userPoint = getUserPoint(id);
 
         UserPoint updatedUserPoint = userPointRepository.insertOrUpdate(id, userPoint.point() + amount);
         if (updatedUserPoint == null) {
@@ -67,8 +67,8 @@ public class PointService {
      * @param amount
      * @return
      */
-    public synchronized UserPoint use(long id, long amount) {
-        UserPoint userPoint = point(id);
+    public synchronized UserPoint usePoint(long id, long amount) {
+        UserPoint userPoint = getUserPoint(id);
 
         if (!canUsePoint(userPoint.point(), amount)) {
             throw new RuntimeException("보유 포인트가 부족합니다.");

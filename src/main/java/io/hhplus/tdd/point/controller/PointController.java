@@ -21,21 +21,21 @@ public class PointController {
 
     @GetMapping("{id}")
     public ResponseEntity<?> point(@PathVariable long id) {
-        return new ResponseEntity<>(pointService.point(id), HttpStatus.OK);
+        return new ResponseEntity<>(pointService.getUserPoint(id), HttpStatus.OK);
     }
 
     @GetMapping("{id}/histories")
     public ResponseEntity<?> history(@PathVariable long id) {
-        return new ResponseEntity<>(pointService.history(id), HttpStatus.OK);
+        return new ResponseEntity<>(pointService.getUserPointHistoryList(id), HttpStatus.OK);
     }
 
     @PatchMapping("{id}/charge")
     public ResponseEntity<?> charge(@PathVariable long id, @RequestBody long amount) {
-        return new ResponseEntity<>(pointService.charge(id, amount), HttpStatus.OK);
+        return new ResponseEntity<>(pointService.chargePoint(id, amount), HttpStatus.OK);
     }
 
     @PatchMapping("{id}/use")
     public ResponseEntity<?> use(@PathVariable long id, @RequestBody long amount) {
-        return new ResponseEntity<>(pointService.use(id, amount), HttpStatus.OK);
+        return new ResponseEntity<>(pointService.usePoint(id, amount), HttpStatus.OK);
     }
 }

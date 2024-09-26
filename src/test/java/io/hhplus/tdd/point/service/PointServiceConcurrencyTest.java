@@ -22,7 +22,7 @@ class PointServiceConcurrencyTest {
 
     @Test
     @DisplayName("동시에 충전하는 경우")
-    void charge() throws InterruptedException {
+    void chargePoint() throws InterruptedException {
         long userId = 1L;
         long initPoint = 1000L;
 
@@ -30,12 +30,12 @@ class PointServiceConcurrencyTest {
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
         CountDownLatch latch = new CountDownLatch(threadCount);
 
-        pointService.charge(userId, initPoint);
+        pointService.chargePoint(userId, initPoint);
 
         for (int i = 0; i < threadCount; i++) {
             executorService.execute(() -> {
                 try {
-                    pointService.charge(userId, 100L);
+                    pointService.chargePoint(userId, 100L);
                 } finally {
                     latch.countDown();
                 }
@@ -45,13 +45,13 @@ class PointServiceConcurrencyTest {
         latch.await();
         executorService.shutdown();
 
-        UserPoint result = pointService.point(userId);
+        UserPoint result = pointService.getUserPoint(userId);
         assertEquals(initPoint + threadCount * 100L, result.point());
     }
 
     @Test
     @DisplayName("동시에 사용하는 경우 - 보유 포인트 내에서 사용")
-    void use() throws InterruptedException {
+    void usePoint() throws InterruptedException {
         long userId = 1L;
         long initPoint = 10000L;
 
@@ -59,12 +59,12 @@ class PointServiceConcurrencyTest {
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
         CountDownLatch latch = new CountDownLatch(threadCount);
 
-        pointService.charge(userId, initPoint);
+        pointService.chargePoint(userId, initPoint);
 
         for (int i = 0; i < threadCount; i++) {
             executorService.submit(() -> {
                 try {
-                    pointService.use(userId, 100L);
+                    pointService.usePoint(userId, 100L);
                 } finally {
                     latch.countDown();
                 }
@@ -74,7 +74,7 @@ class PointServiceConcurrencyTest {
         latch.await();
         executorService.shutdown();
 
-        UserPoint result = pointService.point(userId);
+        UserPoint result = pointService.getUserPoint(userId);
         assertEquals(initPoint - threadCount * 100, result.point());
     }
 
@@ -91,12 +91,12 @@ class PointServiceConcurrencyTest {
         AtomicInteger successCount = new AtomicInteger();
         AtomicInteger failCount = new AtomicInteger();
 
-        pointService.charge(userId, initPoint);
+        pointService.chargePoint(userId, initPoint);
 
         for (int i = 0; i < threadCount; i++) {
             executorService.submit(() -> {
                 try {
-                    pointService.use(userId, 2000L);
+                    pointService.usePoint(userId, 2000L);
                     successCount.incrementAndGet();
                 } catch (RuntimeException e) {
                     failCount.incrementAndGet();
@@ -126,19 +126,19 @@ class PointServiceConcurrencyTest {
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
         CountDownLatch latch = new CountDownLatch(threadCount);
 
-        pointService.charge(userId, initPoint);
+        pointService.chargePoint(userId, initPoint);
 
         for (int i = 0; i < threadCount / 2; i++) {
             executorService.submit(() -> {
                 try {
-                    pointService.charge(userId, 500);
+                    pointService.chargePoint(userId, 500);
                 } finally {
                     latch.countDown();
                 }
             });
             executorService.submit(() -> {
                 try {
-                    pointService.use(userId, 500);
+                    pointService.usePoint(userId, 500);
                 } finally {
                     latch.countDown();
                 }
@@ -148,7 +148,7 @@ class PointServiceConcurrencyTest {
         latch.await();
         executorService.shutdown();
 
-        UserPoint result = pointService.point(userId);
+        UserPoint result = pointService.getUserPoint(userId);
         assertEquals(initPoint, result.point());
     }
 

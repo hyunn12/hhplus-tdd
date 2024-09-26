@@ -37,7 +37,7 @@ class PointServiceTest {
         UserPoint userPoint = new UserPoint(id, amount, System.currentTimeMillis());
         when(userPointRepository.selectById(id)).thenReturn(userPoint);
 
-        UserPoint result = pointService.point(id);
+        UserPoint result = pointService.getUserPoint(id);
 
         assertEquals(id, result.id());
         assertEquals(amount, result.point());
@@ -51,7 +51,7 @@ class PointServiceTest {
         when(userPointRepository.selectById(id)).thenReturn(null);
 
         assertThrows(RuntimeException.class, () -> {
-            pointService.point(id);
+            pointService.getUserPoint(id);
         });
     }
 
@@ -66,7 +66,7 @@ class PointServiceTest {
 
         when(pointHistoryRepository.selectAllByUserId(id)).thenReturn(historyList);
 
-        List<PointHistory> result = pointService.history(id);
+        List<PointHistory> result = pointService.getUserPointHistoryList(id);
 
         assertNotNull(result);
         assertEquals(historyList.size(), result.size());
@@ -87,7 +87,7 @@ class PointServiceTest {
         when(userPointRepository.selectById(id)).thenReturn(null);
 
         assertThrows(RuntimeException.class, () -> {
-            pointService.history(id);
+            pointService.getUserPointHistoryList(id);
         });
     }
 
@@ -104,7 +104,7 @@ class PointServiceTest {
         when(userPointRepository.selectById(id)).thenReturn(userPoint);
         when(userPointRepository.insertOrUpdate(id, initPoint + chargePoint)).thenReturn(updatedUserPoint);
 
-        UserPoint result = pointService.charge(id, chargePoint);
+        UserPoint result = pointService.chargePoint(id, chargePoint);
 
         assertEquals(id, result.id());
         assertEquals(initPoint + chargePoint, result.point());
@@ -123,7 +123,7 @@ class PointServiceTest {
         when(userPointRepository.selectById(id)).thenReturn(userPoint);
         when(userPointRepository.insertOrUpdate(id, initPoint - usePoint)).thenReturn(updatedUserPoint);
 
-        UserPoint result = pointService.use(id, usePoint);
+        UserPoint result = pointService.usePoint(id, usePoint);
 
         assertNotNull(result);
         assertEquals(id, result.id());
@@ -146,7 +146,7 @@ class PointServiceTest {
 //        });
 
         RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            pointService.use(id, usePoint);
+            pointService.usePoint(id, usePoint);
         });
 
         assertEquals("보유 포인트가 부족합니다.", exception.getMessage());
